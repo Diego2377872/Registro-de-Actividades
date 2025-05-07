@@ -1,38 +1,21 @@
-async function cargarRegistros() {
-  try {
-    const res = await fetch('data.json');
-    const data = await res.json();
-    const tabla = document.getElementById('tablaBody');
-    tabla.innerHTML = '';
-    data.forEach(reg => {
-      const fila = document.createElement('tr');
-      fila.innerHTML = `
-        <td>${reg.fecha}</td>
-        <td>${reg.actividad}</td>
-        <td>${reg.lugar}</td>
-        <td>${reg.permiso}</td>
-        <td>${reg.viatico}</td>
-      `;
-      tabla.appendChild(fila);
-    });
-  } catch (err) {
-    console.error("Error al cargar datos:", err);
-  }
-}
-
-async function guardarEnGitHub(registro) {
-  const res = await fetch('/.netlify/functions/saveData', {
-    method: 'POST',
-    body: JSON.stringify(registro),
-    headers: { 'Content-Type': 'application/json' }
+function cargarRegistros() {
+  const registros = JSON.parse(localStorage.getItem('registros')) || [];
+  const tabla = document.getElementById('tablaBody');
+  tabla.innerHTML = '';
+  registros.forEach(reg => {
+    const fila = document.createElement('tr');
+    fila.innerHTML = `
+      <td>${reg.fecha}</td>
+      <td>${reg.actividad}</td>
+      <td>${reg.lugar}</td>
+      <td>${reg.permiso}</td>
+      <td>${reg.viatico}</td>
+    `;
+    tabla.appendChild(fila);
   });
-  if (!res.ok) {
-    const err = await res.json();
-    alert("Error al guardar: " + err.error);
-  }
 }
 
-document.getElementById('registroForm').addEventListener('submit', async e => {
+document.getElementById('registroForm').addEventListener('submit', e => {
   e.preventDefault();
   const nuevoRegistro = {
     fecha: document.getElementById('fecha').value,
@@ -41,8 +24,12 @@ document.getElementById('registroForm').addEventListener('submit', async e => {
     permiso: document.getElementById('permiso').value,
     viatico: document.getElementById('viatico').value
   };
-  await guardarEnGitHub(nuevoRegistro);
-  await cargarRegistros();
+
+  const registros = JSON.parse(localStorage.getItem('registros')) || [];
+  registros.push(nuevoRegistro);
+  localStorage.setItem('registros', JSON.stringify(registros));
+
+  cargarRegistros();
   e.target.reset();
 });
 

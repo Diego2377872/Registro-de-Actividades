@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registro de Actividades</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>📋 Registro de Actividades</h1>
+    <form id="registroForm">
+      <input type="date" id="fecha" required />
+      <input type="text" id="actividad" placeholder="Actividad" required />
+      <input type="text" id="lugar" placeholder="Lugar o Institución" required />
+      <select id="permiso" required>
+        <option value="">Permiso Entregado</option>
+        <option value="Sí">Sí</option>
+        <option value="No">No</option>
+      </select>
+      <select id="viatico" required>
+        <option value="">Pedido de Viático</option>
+        <option value="Sí">Sí</option>
+        <option value="No">No</option>
+      </select>
+      <button type="submit">Guardar</button>
+    </form>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Actividad</th>
+          <th>Lugar o Institución</th>
+          <th>Permiso Entregado</th>
+          <th>Pedido de Viático</th>
+        </tr>
+      </thead>
+      <tbody id="tablaBody"></tbody>
+    </table>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

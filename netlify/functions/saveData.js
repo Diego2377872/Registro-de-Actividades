@@ -1,8 +1,8 @@
 const { Octokit } = require("@octokit/rest");
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const OWNER = "tu_usuario";   // Cambia esto por tu usuario GitHub
-const REPO = "tu_repo";       // Cambia esto por tu repositorio
+const OWNER = "Diego2377872";   // Cambia esto por tu usuario GitHub
+const REPO = "Registro de actividades";       // Cambia esto por tu repositorio
 const FILE_PATH = "data.json";
 
 exports.handler = async (event) => {

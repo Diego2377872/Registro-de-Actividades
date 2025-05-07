@@ -3,7 +3,7 @@ const { Octokit } = require("@octokit/core");
 exports.handler = async (event) => {
   const token = process.env.GITHUB_TOKEN;
   const repo = 'Registro-de-Actividades';
-  const owner = 'TU_USUARIO_GITHUB';
+  const owner = 'Diego_Rodriguez.Py';
   const path = 'data.json';
   const branch = 'main';
 

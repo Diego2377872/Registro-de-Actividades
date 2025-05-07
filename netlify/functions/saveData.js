@@ -1,49 +1,44 @@
-const { Octokit } = require("@octokit/core");
+const { Octokit } = require("@octokit/rest");
+
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const OWNER = "tu_usuario";   // Cambia esto por tu usuario GitHub
+const REPO = "tu_repo";       // Cambia esto por tu repositorio
+const FILE_PATH = "data.json";
 
 exports.handler = async (event) => {
-  const token = process.env.GITHUB_TOKEN;
-  const repo = 'Registro-de-Actividades';
-  const owner = 'Diego_Rodriguez.Py';
-  const path = 'data.json';
-  const branch = 'main';
-
-  const octokit = new Octokit({ auth: token });
+  const registro = JSON.parse(event.body);
+  const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
   try {
-    const registroNuevo = JSON.parse(event.body);
-
-    const { data: fileData } = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-      owner,
-      repo,
-      path,
-      ref: branch
+    const { data: file } = await octokit.repos.getContent({
+      owner: OWNER,
+      repo: REPO,
+      path: FILE_PATH
     });
 
-    const contenidoActual = Buffer.from(fileData.content, 'base64').toString();
-    const json = JSON.parse(contenidoActual);
-    json.push(registroNuevo);
+    const decoded = Buffer.from(file.content, 'base64').toString();
+    const registros = JSON.parse(decoded);
+    registros.push(registro);
 
-    const nuevoContenido = Buffer.from(JSON.stringify(json, null, 2)).toString('base64');
+    const updatedContent = Buffer.from(JSON.stringify(registros, null, 2)).toString('base64');
 
-    await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
-      owner,
-      repo,
-      path,
-      message: 'Nuevo registro agregado',
-      content: nuevoContenido,
-      sha: fileData.sha,
-      branch
+    await octokit.repos.createOrUpdateFileContents({
+      owner: OWNER,
+      repo: REPO,
+      path: FILE_PATH,
+      message: "Actualizar registros",
+      content: updatedContent,
+      sha: file.sha
     });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true })
+      body: JSON.stringify({ message: "Registro guardado" })
     };
-
-  } catch (error) {
+  } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ error: err.message })
     };
   }
 };

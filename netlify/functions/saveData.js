@@ -1,44 +1,66 @@
-const { Octokit } = require("@octokit/rest");
+const fetch = require('node-fetch');
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const OWNER = "Diego2377872";   // Cambia esto por tu usuario GitHub
-const REPO = "Registro de actividades";       // Cambia esto por tu repositorio
-const FILE_PATH = "data.json";
+const token = process.env.GITHUB_TOKEN;
+const repo = "Diego2377872/Registro-de-Actividades";
+const filePath = "data.json";
 
 exports.handler = async (event) => {
-  const registro = JSON.parse(event.body);
-  const octokit = new Octokit({ auth: GITHUB_TOKEN });
+  if (event.httpMethod !== "POST") {
+    return { statusCode: 405, body: "Método no permitido" };
+  }
 
   try {
-    const { data: file } = await octokit.repos.getContent({
-      owner: OWNER,
-      repo: REPO,
-      path: FILE_PATH
+    const nuevoRegistro = JSON.parse(event.body);
+
+    const getFile = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: "application/vnd.github.v3+json",
+      }
     });
 
-    const decoded = Buffer.from(file.content, 'base64').toString();
-    const registros = JSON.parse(decoded);
-    registros.push(registro);
+    if (!getFile.ok) {
+      throw new Error("No se pudo obtener el archivo data.json");
+    }
 
-    const updatedContent = Buffer.from(JSON.stringify(registros, null, 2)).toString('base64');
+    const fileData = await getFile.json();
+    const content = Buffer.from(fileData.content, "base64").toString("utf-8");
+    const registros = JSON.parse(content);
 
-    await octokit.repos.createOrUpdateFileContents({
-      owner: OWNER,
-      repo: REPO,
-      path: FILE_PATH,
-      message: "Actualizar registros",
-      content: updatedContent,
-      sha: file.sha
+    registros.push(nuevoRegistro);
+
+    const newContent = Buffer.from(JSON.stringify(registros, null, 2)).toString("base64");
+
+    const update = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+      body: JSON.stringify({
+        message: "Nuevo registro desde Netlify",
+        content: newContent,
+        sha: fileData.sha,
+        committer: {
+          name: "Netlify Bot",
+          email: "bot@netlify.com",
+        }
+      }),
     });
+
+    if (!update.ok) {
+      const errorText = await update.text();
+      throw new Error(`Fallo al guardar: ${errorText}`);
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: "Registro guardado" })
+      body: JSON.stringify({ message: "Registro guardado exitosamente." }),
     };
-  } catch (err) {
+  } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({ message: error.message }),
     };
   }
 };
